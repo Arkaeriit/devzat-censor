@@ -2,7 +2,8 @@
 /// The code in the helper functions is unsafe but as input is controlled and rustrict behavior
 /// is known, there are no significant risks.
 
-use rustrict::CensorStr;
+use rustrict::Censor;
+use rustrict::Type;
 use std::ffi::CStr;
 use std::ffi::CString;
 use std::os::raw::c_char;
@@ -13,7 +14,12 @@ use libc::c_void;
 #[no_mangle]
 pub unsafe extern "C" fn censor(pnt: *mut c_char) {
         let origin = cpnt_to_str(pnt);
-        let censored: String = origin.censor();
+        let censored: String = Censor::from_str(&origin)
+            .with_censor_replacement('·')
+            .with_censor_first_character_threshold(Type::SEVERE)
+            .with_censor_threshold(Type::MODERATE_OR_HIGHER)
+            .with_ignore_self_censoring(true)
+            .censor();
         write_into_cpnt(pnt, &censored);
 }
 
