@@ -3,6 +3,10 @@ package main
 import (
     "fmt"
     "os"
+    "unicode"
+	"golang.org/x/text/runes"
+	"golang.org/x/text/transform"
+	"golang.org/x/text/unicode/norm"
 
     api "github.com/quackduck/devzat/devzatapi"
 )
@@ -25,14 +29,23 @@ func main() {
             panic(err)
         case msg := <-messageChan:
             txt := msg.Data
-            censored := rmBadWords(txt)
-            replyChan <- censored
-            if txt == censored {
+            clean := removeDiactrics(txt)
+            censored := rmBadWords(clean)
+            if clean == censored {
                 fmt.Printf("'%s' does not need censoring.\n", txt)
+                replyChan <- txt
             } else {
                 fmt.Printf("'%s' get censored into '%s'.\n", txt, censored)
+                replyChan <- censored
             }
         }
     }
 }
+
+func removeDiactrics(in string) string {
+    t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+    s, _, _ := transform.String(t, in)
+    return s
+}
+
 
