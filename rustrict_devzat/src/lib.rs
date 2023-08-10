@@ -13,14 +13,24 @@ use libc::c_void;
 
 #[no_mangle]
 pub unsafe extern "C" fn censor(pnt: *mut c_char) {
+
         let origin = cpnt_to_str(pnt);
-        let censored: String = Censor::from_str(&origin)
+        let (censored, analysis) = Censor::from_str(&origin)
             .with_censor_replacement('·')
             .with_censor_first_character_threshold(Type::SEVERE)
             .with_censor_threshold(Type::MODERATE_OR_HIGHER)
+            //.with_censor_threshold(Type::SEVERE)
             .with_ignore_self_censoring(true)
-            .censor();
-        write_into_cpnt(pnt, &censored);
+            .censor_and_analyze();
+
+        println!("\n\n{:?}", analysis);
+
+        //let used_categories = Type::OFFENSIVE | Type::SEXUAL;
+        if analysis.is(Type::OFFENSIVE) || analysis.is(Type::SEXUAL) {
+            write_into_cpnt(pnt, &censored);
+        } else {
+            write_into_cpnt(pnt, &origin);
+        }
 }
 
 /// Transform a raw c_char pointer into a string.
