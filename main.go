@@ -12,11 +12,15 @@ import (
 )
 
 func main() {
-    s, err := api.NewSession("devzat.hackclub.com:5556", os.Getenv("DEVZAT_TOKEN"))
+    host := os.Getenv("PLUGIN_HOST")
+    if host == "" {
+        host = "devzat.hackclub.com:5556"
+    }
+
+    s, err := api.NewSession(host, os.Getenv("PLUGIN_TOKEN"))
     if err != nil {
         panic(err)
     }
-
 
     messageChan, replyChan, err := s.RegisterListener(true, false, "")
     if err != nil {
