@@ -11,7 +11,7 @@ import (
 	api "github.com/quackduck/devzat/devzatapi"
 )
 
-func main() {
+func runPlugin() error {
 	host := os.Getenv("PLUGIN_HOST")
 	if host == "" {
 		host = "devzat.hackclub.com:5556"
@@ -46,8 +46,16 @@ func main() {
 	}
 }
 
+func main() {
+	for {
+		err := runPlugin()
+		fmt.Printf("!!!! %v !!!!\n", err)
+	}
+}
+
 func removeDiactrics(in string) string {
 	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	s, _, _ := transform.String(t, in)
 	return s
 }
+
